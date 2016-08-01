@@ -1,0 +1,33 @@
+# Build outputs
+*.o
+*.elf
+*.hex
+lib*.so
+lib*.so.*
+*.a
+*.d
+.dep
+build
+.gdbinit
+*.swp
+*~
+*.pyc
+__pycache__
+
+# Temporary
+*.log
+
+# Eclipse
+.metadata
+.settings
+.project
+.cproject
+.pydevproject
+
+# Libs
+dsdlc_generated
+
+# JetBrains
+.idea
+
+SI/

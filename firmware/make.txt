@@ -1,0 +1,429 @@
+Running from the source directory
+Linking build/com.zubax.gnss.elf
+Creating build/com.zubax.gnss.bin
+# Removing previous build outputs that could use a different git hash
+rm -rf build/*.uavcan.bin build/*.compound.bin
+# Generating compound image with embedded bootloader
+cd build && dd if=/dev/zero bs=16384 count=1 | tr "\000" "\377" >padded_bootloader.tmp.bin
+cd build && dd if=../bootloader.bin of=padded_bootloader.tmp.bin conv=notrunc
+cd build && cat padded_bootloader.tmp.bin com.zubax.gnss.bin >com.zubax.gnss-2.0-3.0.5d5dc07.compound.bin
+# Generating the signed image for the bootloader
+cd build && ../zubax_chibios/tools/make_boot_descriptor.py com.zubax.gnss.bin com.zubax.gnss 2.0 \
+	                                                           --also-patch-descriptor-in=com.zubax.gnss.elf           \
+	                                                           --also-patch-descriptor-in=com.zubax.gnss-2.0-3.0.5d5dc07.compound.bin
+# Injecting the bootloader into the final ELF
+cd build && arm-none-eabi-objcopy --add-section bootloader=../bootloader.bin     \
+	                                        --set-section-flags bootloader=load,alloc      \
+	                                        --change-section-address bootloader=0x08000000 \
+	                                        com.zubax.gnss.elf compound.elf
+# Removing temporary files
+cd build && rm -f com.zubax.gnss.bin com.zubax.gnss.elf *.hex *.tmp.bin
+Running from the source directory
+Compiler Options
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -falign-functions=16 -U__STRICT_ANSI__ -fno-exceptions -fno-unwind-tables -fno-stack-protector -fno-builtin-printf -fno-builtin-fprintf -fno-builtin-vprintf -fno-builtin-vfprintf -fno-builtin-puts -fconserve-stack -u_port_lock -u_port_unlock -u_exit -u_kill -u_getpid -uchThdExit -nodefaultlibs -lc -lgcc -lm -O1 -g3 -DDISABLE_WATCHDOG=1 -ffunction-sections -fdata-sections -fno-common -std=c99 -Wall -Wextra -Wstrict-prototypes -Wa,-alms=build/lst/ -DCORTEX_VTOR_INIT=16384 -DDEBUG_BUILD=1 -Dasm=__asm -DCORTEX_USE_FPU=FALSE -DFW_VERSION_MAJOR=3 -DFW_VERSION_MINOR=0 -DHW_VERSION=2 -DPRODUCT_ID_STRING="com.zubax.gnss" -DPRODUCT_NAME_STRING="Zubax GNSS" -DUAVCAN_STM32_TIMER_NUMBER=7 -DUAVCAN_STM32_NUM_IFACES=1 -DUAVCAN_STM32_CHIBIOS=1 -DUAVCAN_CPP_VERSION=UAVCAN_CPP11 -DUAVCAN_STM32_IRQ_PRIORITY_MASK=4 -DGIT_HASH=0x5d5dc07 -DSTDOUT_SD=SD3 -DSTDIN_SD=STDOUT_SD -DSERIAL_CLI_PORT_NUMBER=3 -DCORTEX_ENABLE_WFI_IDLE=1 -DCHPRINTF_USE_FLOAT=1 -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING -MD -MP -MF .dep/build.d -I. -Izubax_chibios///chibios/os/rt/ports/ARMCMx -Izubax_chibios///chibios/os/rt/ports/ARMCMx/compilers/GCC -Izubax_chibios///chibios/os/rt/include -Izubax_chibios///chibios/os/hal/include -Izubax_chibios//chibios/os/hal/ports/common/ARMCMx -Izubax_chibios//chibios/os/hal/ports/STM32/STM32F1xx -Izubax_chibios//chibios/os/hal/ports/STM32/LLD -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/DACv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/GPIOv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/I2Cv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/RTCv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/SPIv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/TIMv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/USARTv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/OTGv1 -Izubax_chibios///chibios/os/various/cpp_wrappers -Izubax_chibios///chibios/os/common/ports/ARMCMx/devices/STM32F1xx -Izubax_chibios///chibios/os/ext/CMSIS/include -Izubax_chibios///chibios/os/ext/CMSIS/ST -Izubax_chibios///chibios/os/hal/osal/rt -Izubax_chibios///chibios/os/various -Izubax_chibios///chibios/os/hal/lib/streams -Isrc -Isrc/sys -Ilibuavcan/libuavcan/include -Ilibuavcan/libuavcan_drivers/stm32/driver/include/ -Idsdlc_generated -Izubax_chibios// main.c -o main.o
+
+Compiling crt0_v7m.s
+Compiling chcoreasm_v7m.s
+Compiling ms5611.c
+Compiling crt1.c
+Compiling vectors.c
+Compiling chsys.c
+Compiling chdebug.c
+Compiling chvt.c
+Compiling chschd.c
+Compiling chthreads.c
+Compiling chtm.c
+Compiling chstats.c
+Compiling chdynamic.c
+Compiling chregistry.c
+Compiling chsem.c
+Compiling chmtx.c
+Compiling chcond.c
+Compiling chevents.c
+Compiling chmsg.c
+Compiling chmboxes.c
+Compiling chqueues.c
+Compiling chmemcore.c
+Compiling chheap.c
+Compiling chmempools.c
+Compiling chcore.c
+Compiling chcore_v7m.c
+Compiling osal.c
+Compiling hal.c
+Compiling hal_queues.c
+Compiling hal_mmcsd.c
+Compiling adc.c
+Compiling can.c
+Compiling dac.c
+Compiling ext.c
+Compiling gpt.c
+Compiling i2c.c
+Compiling i2s.c
+Compiling icu.c
+Compiling mac.c
+Compiling mmc_spi.c
+Compiling pal.c
+Compiling pwm.c
+Compiling rtc.c
+Compiling sdc.c
+Compiling serial.c
+Compiling serial_usb.c
+Compiling spi.c
+Compiling st.c
+Compiling uart.c
+Compiling usb.c
+Compiling nvic.c
+Compiling stm32_dma.c
+Compiling hal_lld.c
+Compiling adc_lld.c
+Compiling ext_lld_isr.c
+Compiling can_lld.c
+Compiling ext_lld.c
+Compiling mac_lld.c
+Compiling sdc_lld.c
+Compiling dac_lld.c
+Compiling pal_lld.c
+Compiling i2c_lld.c
+Compiling usb_lld.c
+Compiling rtc_lld.c
+Compiling spi_lld.c
+Compiling gpt_lld.c
+Compiling icu_lld.c
+Compiling pwm_lld.c
+Compiling st_lld.c
+Compiling serial_lld.c
+Compiling uart_lld.c
+Compiling syscalls.c
+Compiling shell.c
+Compiling chprintf.c
+Compiling memstreams.c
+Compiling air_sensor.cpp
+Compiling board.cpp
+Compiling ublox.cpp
+Compiling bootloader_interface.cpp
+Compiling gnss.cpp
+Compiling magnetometer.cpp
+Compiling main.cpp
+Compiling nmea.cpp
+Compiling node.cpp
+Compiling uc_can.cpp
+Compiling uc_bit_array_copy.cpp
+Compiling uc_bit_stream.cpp
+Compiling uc_float_spec.cpp
+Compiling uc_scalar_codec.cpp
+Compiling uc_generic_publisher.cpp
+Compiling uc_generic_subscriber.cpp
+Compiling uc_global_data_type_registry.cpp
+Compiling uc_scheduler.cpp
+Compiling uc_service_client.cpp
+Compiling uc_timer.cpp
+Compiling uc_dynamic_node_id_client.cpp
+Compiling uc_node_status_provider.cpp
+Compiling uc_can_acceptance_filter_configurator.cpp
+Compiling uc_can_io.cpp
+Compiling uc_crc.cpp
+Compiling uc_dispatcher.cpp
+Compiling uc_frame.cpp
+Compiling uc_outgoing_transfer_registry.cpp
+Compiling uc_transfer.cpp
+Compiling uc_transfer_buffer.cpp
+Compiling uc_transfer_listener.cpp
+Compiling uc_transfer_receiver.cpp
+Compiling uc_transfer_sender.cpp
+Compiling uc_data_type.cpp
+Compiling uc_dynamic_memory.cpp
+Compiling uc_error.cpp
+Compiling uc_stm32_can.cpp
+Compiling uc_stm32_clock.cpp
+Compiling uc_stm32_thread.cpp
+Compiling sys_stm32.cpp
+Compiling watchdog_stm32.cpp
+Compiling config_storage_stm32.cpp
+Compiling libstdcpp.cpp
+Compiling sys_console.cpp
+Compiling sys.cpp
+Compiling config.cpp
+Compiling config_cli.cpp
+Compiling ch.cpp
+Compiling syscalls_cpp.cpp
+Linking build/com.zubax.gnss.elf
+Creating build/com.zubax.gnss.bin
+# Removing previous build outputs that could use a different git hash
+rm -rf build/*.uavcan.bin build/*.compound.bin
+# Generating compound image with embedded bootloader
+cd build && dd if=/dev/zero bs=16384 count=1 | tr "\000" "\377" >padded_bootloader.tmp.bin
+cd build && dd if=../bootloader.bin of=padded_bootloader.tmp.bin conv=notrunc
+cd build && cat padded_bootloader.tmp.bin com.zubax.gnss.bin >com.zubax.gnss-2.0-3.0.5d5dc07.compound.bin
+# Generating the signed image for the bootloader
+cd build && ../zubax_chibios/tools/make_boot_descriptor.py com.zubax.gnss.bin com.zubax.gnss 2.0 \
+	                                                           --also-patch-descriptor-in=com.zubax.gnss.elf           \
+	                                                           --also-patch-descriptor-in=com.zubax.gnss-2.0-3.0.5d5dc07.compound.bin
+# Injecting the bootloader into the final ELF
+cd build && arm-none-eabi-objcopy --add-section bootloader=../bootloader.bin     \
+	                                        --set-section-flags bootloader=load,alloc      \
+	                                        --change-section-address bootloader=0x08000000 \
+	                                        com.zubax.gnss.elf compound.elf
+# Removing temporary files
+cd build && rm -f com.zubax.gnss.bin com.zubax.gnss.elf *.hex *.tmp.bin
+Running from the source directory
+Compiling chcoreasm_v7m.s
+Compiling ms5611.c
+Compiling crt1.c
+Compiling vectors.c
+Compiling chsys.c
+Compiling chdebug.c
+Compiling chvt.c
+Compiling chschd.c
+Compiling chthreads.c
+Compiling chtm.c
+Compiling chstats.c
+Compiling chdynamic.c
+Compiling chregistry.c
+Compiling chsem.c
+Compiling chmtx.c
+Compiling chcond.c
+Compiling chevents.c
+Compiling chmsg.c
+Compiling chmboxes.c
+Compiling chqueues.c
+Compiling chmemcore.c
+Compiling chheap.c
+Compiling chmempools.c
+Compiling chcore.c
+Compiling chcore_v7m.c
+Compiling osal.c
+Compiling hal.c
+Compiling hal_queues.c
+Compiling hal_mmcsd.c
+Compiling adc.c
+Compiling can.c
+Compiling dac.c
+Compiling ext.c
+Compiling gpt.c
+Compiling i2c.c
+Compiling i2s.c
+Compiling icu.c
+Compiling mac.c
+Compiling mmc_spi.c
+Compiling pal.c
+Compiling pwm.c
+Compiling rtc.c
+Compiling sdc.c
+Compiling serial.c
+Compiling serial_usb.c
+Compiling spi.c
+Compiling st.c
+Compiling uart.c
+Compiling usb.c
+Compiling nvic.c
+Compiling stm32_dma.c
+Compiling hal_lld.c
+Compiling adc_lld.c
+Compiling ext_lld_isr.c
+Compiling can_lld.c
+Compiling ext_lld.c
+Compiling mac_lld.c
+Compiling sdc_lld.c
+Compiling dac_lld.c
+Compiling pal_lld.c
+Compiling i2c_lld.c
+Compiling usb_lld.c
+Compiling rtc_lld.c
+Compiling spi_lld.c
+Compiling gpt_lld.c
+Compiling icu_lld.c
+Compiling pwm_lld.c
+Compiling st_lld.c
+Compiling serial_lld.c
+Compiling uart_lld.c
+Compiling syscalls.c
+Compiling shell.c
+Compiling chprintf.c
+Compiling memstreams.c
+Compiling air_sensor.cpp
+Compiling board.cpp
+Compiling ublox.cpp
+Compiling gnss.cpp
+Compiling magnetometer.cpp
+Compiling main.cpp
+Compiling nmea.cpp
+Compiling node.cpp
+Compiling uc_stm32_can.cpp
+Compiling uc_stm32_clock.cpp
+Compiling uc_stm32_thread.cpp
+Compiling sys_stm32.cpp
+Compiling watchdog_stm32.cpp
+Compiling config_storage_stm32.cpp
+Compiling libstdcpp.cpp
+Compiling sys_console.cpp
+Compiling sys.cpp
+Compiling config.cpp
+Compiling config_cli.cpp
+Compiling ch.cpp
+Compiling syscalls_cpp.cpp
+Linking build/com.zubax.gnss.elf
+Creating build/com.zubax.gnss.bin
+# Removing previous build outputs that could use a different git hash
+rm -rf build/*.uavcan.bin build/*.compound.bin
+# Generating compound image with embedded bootloader
+cd build && dd if=/dev/zero bs=16384 count=1 | tr "\000" "\377" >padded_bootloader.tmp.bin
+cd build && dd if=../bootloader.bin of=padded_bootloader.tmp.bin conv=notrunc
+cd build && cat padded_bootloader.tmp.bin com.zubax.gnss.bin >com.zubax.gnss-2.0-3.0.5d5dc07.compound.bin
+# Generating the signed image for the bootloader
+cd build && ../zubax_chibios/tools/make_boot_descriptor.py com.zubax.gnss.bin com.zubax.gnss 2.0 \
+	                                                           --also-patch-descriptor-in=com.zubax.gnss.elf           \
+	                                                           --also-patch-descriptor-in=com.zubax.gnss-2.0-3.0.5d5dc07.compound.bin
+# Injecting the bootloader into the final ELF
+cd build && arm-none-eabi-objcopy --add-section bootloader=../bootloader.bin     \
+	                                        --set-section-flags bootloader=load,alloc      \
+	                                        --change-section-address bootloader=0x08000000 \
+	                                        com.zubax.gnss.elf compound.elf
+# Removing temporary files
+cd build && rm -f com.zubax.gnss.bin com.zubax.gnss.elf *.hex *.tmp.bin
+Running from the source directory
+Compiler Options
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -falign-functions=16 -U__STRICT_ANSI__ -fno-exceptions -fno-unwind-tables -fno-stack-protector -fno-builtin-printf -fno-builtin-fprintf -fno-builtin-vprintf -fno-builtin-vfprintf -fno-builtin-puts -fconserve-stack -u_port_lock -u_port_unlock -u_exit -u_kill -u_getpid -uchThdExit -nodefaultlibs -lc -lgcc -lm -O1 -g3 -DDISABLE_WATCHDOG=1 -ffunction-sections -fdata-sections -fno-common -std=c99 -Wall -Wextra -Wstrict-prototypes -Wa,-alms=build/lst/ -DCORTEX_VTOR_INIT=16384 -DDEBUG_BUILD=1 -Dasm=__asm -DCORTEX_USE_FPU=FALSE -DFW_VERSION_MAJOR=3 -DFW_VERSION_MINOR=0 -DHW_VERSION=2 -DPRODUCT_ID_STRING="com.zubax.gnss" -DPRODUCT_NAME_STRING="Zubax GNSS" -DUAVCAN_STM32_TIMER_NUMBER=7 -DUAVCAN_STM32_NUM_IFACES=1 -DUAVCAN_STM32_CHIBIOS=1 -DUAVCAN_CPP_VERSION=UAVCAN_CPP11 -DUAVCAN_STM32_IRQ_PRIORITY_MASK=4 -DGIT_HASH=0x5d5dc07 -DSTDOUT_SD=SD3 -DSTDIN_SD=STDOUT_SD -DSERIAL_CLI_PORT_NUMBER=3 -DCORTEX_ENABLE_WFI_IDLE=1 -DCHPRINTF_USE_FLOAT=1 -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING -MD -MP -MF .dep/build.d -I. -Izubax_chibios///chibios/os/rt/ports/ARMCMx -Izubax_chibios///chibios/os/rt/ports/ARMCMx/compilers/GCC -Izubax_chibios///chibios/os/rt/include -Izubax_chibios///chibios/os/hal/include -Izubax_chibios//chibios/os/hal/ports/common/ARMCMx -Izubax_chibios//chibios/os/hal/ports/STM32/STM32F1xx -Izubax_chibios//chibios/os/hal/ports/STM32/LLD -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/DACv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/GPIOv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/I2Cv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/RTCv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/SPIv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/TIMv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/USARTv1 -Izubax_chibios//chibios/os/hal/ports/STM32/LLD/OTGv1 -Izubax_chibios///chibios/os/various/cpp_wrappers -Izubax_chibios///chibios/os/common/ports/ARMCMx/devices/STM32F1xx -Izubax_chibios///chibios/os/ext/CMSIS/include -Izubax_chibios///chibios/os/ext/CMSIS/ST -Izubax_chibios///chibios/os/hal/osal/rt -Izubax_chibios///chibios/os/various -Izubax_chibios///chibios/os/hal/lib/streams -Isrc -Isrc/sys -Ilibuavcan/libuavcan/include -Ilibuavcan/libuavcan_drivers/stm32/driver/include/ -Idsdlc_generated -Izubax_chibios// main.c -o main.o
+
+Compiling crt0_v7m.s
+Compiling chcoreasm_v7m.s
+Compiling ms5611.c
+Compiling crt1.c
+Compiling vectors.c
+Compiling chsys.c
+Compiling chdebug.c
+Compiling chvt.c
+Compiling chschd.c
+Compiling chthreads.c
+Compiling chtm.c
+Compiling chstats.c
+Compiling chdynamic.c
+Compiling chregistry.c
+Compiling chsem.c
+Compiling chmtx.c
+Compiling chcond.c
+Compiling chevents.c
+Compiling chmsg.c
+Compiling chmboxes.c
+Compiling chqueues.c
+Compiling chmemcore.c
+Compiling chheap.c
+Compiling chmempools.c
+Compiling chcore.c
+Compiling chcore_v7m.c
+Compiling osal.c
+Compiling hal.c
+Compiling hal_queues.c
+Compiling hal_mmcsd.c
+Compiling adc.c
+Compiling can.c
+Compiling dac.c
+Compiling ext.c
+Compiling gpt.c
+Compiling i2c.c
+Compiling i2s.c
+Compiling icu.c
+Compiling mac.c
+Compiling mmc_spi.c
+Compiling pal.c
+Compiling pwm.c
+Compiling rtc.c
+Compiling sdc.c
+Compiling serial.c
+Compiling serial_usb.c
+Compiling spi.c
+Compiling st.c
+Compiling uart.c
+Compiling usb.c
+Compiling nvic.c
+Compiling stm32_dma.c
+Compiling hal_lld.c
+Compiling adc_lld.c
+Compiling ext_lld_isr.c
+Compiling can_lld.c
+Compiling ext_lld.c
+Compiling mac_lld.c
+Compiling sdc_lld.c
+Compiling dac_lld.c
+Compiling pal_lld.c
+Compiling i2c_lld.c
+Compiling usb_lld.c
+Compiling rtc_lld.c
+Compiling spi_lld.c
+Compiling gpt_lld.c
+Compiling icu_lld.c
+Compiling pwm_lld.c
+Compiling st_lld.c
+Compiling serial_lld.c
+Compiling uart_lld.c
+Compiling syscalls.c
+Compiling shell.c
+Compiling chprintf.c
+Compiling memstreams.c
+Compiling air_sensor.cpp
+Compiling board.cpp
+Compiling ublox.cpp
+Compiling bootloader_interface.cpp
+Compiling gnss.cpp
+Compiling magnetometer.cpp
+Compiling main.cpp
+Compiling nmea.cpp
+Compiling node.cpp
+Compiling uc_can.cpp
+Compiling uc_bit_array_copy.cpp
+Compiling uc_bit_stream.cpp
+Compiling uc_float_spec.cpp
+Compiling uc_scalar_codec.cpp
+Compiling uc_generic_publisher.cpp
+Compiling uc_generic_subscriber.cpp
+Compiling uc_global_data_type_registry.cpp
+Compiling uc_scheduler.cpp
+Compiling uc_service_client.cpp
+Compiling uc_timer.cpp
+Compiling uc_dynamic_node_id_client.cpp
+Compiling uc_node_status_provider.cpp
+Compiling uc_can_acceptance_filter_configurator.cpp
+Compiling uc_can_io.cpp
+Compiling uc_crc.cpp
+Compiling uc_dispatcher.cpp
+Compiling uc_frame.cpp
+Compiling uc_outgoing_transfer_registry.cpp
+Compiling uc_transfer.cpp
+Compiling uc_transfer_buffer.cpp
+Compiling uc_transfer_listener.cpp
+Compiling uc_transfer_receiver.cpp
+Compiling uc_transfer_sender.cpp
+Compiling uc_data_type.cpp
+Compiling uc_dynamic_memory.cpp
+Compiling uc_error.cpp
+Compiling uc_stm32_can.cpp
+Compiling uc_stm32_clock.cpp
+Compiling uc_stm32_thread.cpp
+Compiling sys_stm32.cpp
+Compiling watchdog_stm32.cpp
+Compiling config_storage_stm32.cpp
+Compiling libstdcpp.cpp
+Compiling sys_console.cpp
+Compiling sys.cpp
+Compiling config.cpp
+Compiling config_cli.cpp
+Compiling ch.cpp
+Compiling syscalls_cpp.cpp
+Linking build/com.zubax.gnss.elf
+Creating build/com.zubax.gnss.bin
+# Removing previous build outputs that could use a different git hash
+rm -rf build/*.uavcan.bin build/*.compound.bin
+# Generating compound image with embedded bootloader
+cd build && dd if=/dev/zero bs=16384 count=1 | tr "\000" "\377" >padded_bootloader.tmp.bin
+cd build && dd if=../bootloader.bin of=padded_bootloader.tmp.bin conv=notrunc
+cd build && cat padded_bootloader.tmp.bin com.zubax.gnss.bin >com.zubax.gnss-2.0-3.0.5d5dc07.compound.bin
+# Generating the signed image for the bootloader
+cd build && ../zubax_chibios/tools/make_boot_descriptor.py com.zubax.gnss.bin com.zubax.gnss 2.0 \
+	                                                           --also-patch-descriptor-in=com.zubax.gnss.elf           \
+	                                                           --also-patch-descriptor-in=com.zubax.gnss-2.0-3.0.5d5dc07.compound.bin
+# Injecting the bootloader into the final ELF
+cd build && arm-none-eabi-objcopy --add-section bootloader=../bootloader.bin     \
+	                                        --set-section-flags bootloader=load,alloc      \
+	                                        --change-section-address bootloader=0x08000000 \
+	                                        com.zubax.gnss.elf compound.elf
+# Removing temporary files
+cd build && rm -f com.zubax.gnss.bin com.zubax.gnss.elf *.hex *.tmp.bin
